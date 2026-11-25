@@ -1,0 +1,27 @@
+name: nexa-chat-postgres
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: nexa-chat-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-nexa_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-nexa_chat}
+    ports:
+      # Bind to localhost only for local development safety
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - nexa_chat_pgdata:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-nexa_user} -d $${POSTGRES_DB:-nexa_chat}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  nexa_chat_pgdata:
+    name: nexa_chat_pgdata

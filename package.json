@@ -1,0 +1,28 @@
+{
+  "name": "nexa-chat",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Nexa Chat — Full-stack AI chatbot application for practical LLM Engineering",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev:api": "pnpm --filter @nexa-chat/api dev",
+    "dev:web": "pnpm --filter @nexa-chat/web dev",
+    "build": "pnpm -r build",
+    "build:api": "pnpm --filter @nexa-chat/api build",
+    "build:web": "pnpm --filter @nexa-chat/web build",
+    "test": "pnpm -r test",
+    "test:api": "pnpm --filter @nexa-chat/api test",
+    "test:web": "pnpm --filter @nexa-chat/web test",
+    "lint": "pnpm -r lint",
+    "db:up": "docker compose --env-file .env -f infra/postgres/docker-compose.yml up -d",
+    "db:down": "docker compose --env-file .env -f infra/postgres/docker-compose.yml down",
+    "db:logs": "docker compose --env-file .env -f infra/postgres/docker-compose.yml logs -f postgres",
+    "prisma:generate": "pnpm --filter @nexa-chat/api prisma:generate",
+    "prisma:migrate": "pnpm --filter @nexa-chat/api prisma:migrate",
+    "spike:gemini": "pnpm --filter @nexa-chat/api spike:gemini"
+  }
+}

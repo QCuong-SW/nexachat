@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
+enum MessageStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model User {
+  id            String         @id @default(uuid()) @db.Uuid
+  email         String         @unique @db.VarChar(255)
+  passwordHash  String         @map("password_hash")
+  displayName   String         @map("display_name") @db.VarChar(100)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  conversations Conversation[]
+
+  @@map("users")
+}
+
+model Conversation {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  title         String    @db.VarChar(200)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  lastMessageAt DateTime  @default(now()) @map("last_message_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@index([userId, lastMessageAt(sort: Desc)], map: "idx_conversations_user_last_msg")
+  @@index([userId, deletedAt, lastMessageAt(sort: Desc)], map: "idx_conversations_user_active_last_msg")
+  @@map("conversations")
+}
+
+model Message {
+  id             String        @id @default(uuid()) @db.Uuid
+  conversationId String        @map("conversation_id") @db.Uuid
+  role           MessageRole
+  content        String        @db.Text
+  status         MessageStatus @default(COMPLETED)
+  model          String?       @db.VarChar(100)
+  inputTokens    Int?          @map("input_tokens")
+  outputTokens   Int?          @map("output_tokens")
+  finishReason   String?       @map("finish_reason") @db.VarChar(64)
+  metadata       Json?
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt], map: "idx_messages_conversation_created")
+  @@index([status], map: "idx_messages_status")
+  @@map("messages")
+}
